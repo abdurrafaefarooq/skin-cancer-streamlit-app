@@ -45,11 +45,18 @@ if uploaded_file is not None:
     st.image(image, caption="Uploaded Image", width=300)
 
     if st.button("Predict"):
-        resized_image = image.resize((224, 224))
-        image_array = np.array(resized_image, dtype=np.float32)
-        image_array = np.expand_dims(image_array, axis=0)
+       
+resized_image = image.resize((224, 224))
+image_array = np.array(resized_image, dtype=np.float32)
+image_array = np.expand_dims(image_array, axis=0)
 
-        predictions = model.predict(image_array, verbose=0)[0]
+try:
+    predictions = model(image_array, training=False).numpy()[0]
+except Exception as e:
+    st.error("Prediction failed. Please check the model configuration.")
+    st.exception(e)
+    st.stop()
+
         predicted_index = int(np.argmax(predictions))
         predicted_class = class_names[predicted_index]
         confidence = float(predictions[predicted_index]) * 100
