@@ -1,4 +1,6 @@
 
+
+          
 import streamlit as st
 import tensorflow as tf
 import numpy as np
@@ -15,16 +17,15 @@ st.write("Upload a skin image to see the model's predicted class.")
 
 @st.cache_resource
 def load_model():
-    model = tf.keras.models.load_model(
+    return tf.keras.models.load_model(
         "skin_cancer_model.keras",
         safe_mode=False,
         compile=False
     )
-    return model
 
 @st.cache_data
 def load_classes():
-    with open("class_names.json", "r") as f:
+    with open("class_names.json", "r", encoding="utf-8") as f:
         return json.load(f)
 
 try:
@@ -45,28 +46,30 @@ if uploaded_file is not None:
     st.image(image, caption="Uploaded Image", width=300)
 
     if st.button("Predict"):
-       
-resized_image = image.resize((224, 224))
-image_array = np.array(resized_image, dtype=np.float32)
-image_array = np.expand_dims(image_array, axis=0)
+        resized_image = image.resize((224, 224))
+        image_array = np.array(resized_image, dtype=np.float32)
+        image_array = np.expand_dims(image_array, axis=0)
 
-try:
-    predictions = model(image_array, training=False).numpy()[0]
-except Exception as e:
-    st.error("Prediction failed. Please check the model configuration.")
-    st.exception(e)
-    st.stop()
+        try:
+            predictions = model(image_array, training=False).numpy()[0]
+            predicted_index = int(np.argmax(predictions))
 
-        predicted_index = int(np.argmax(predictions))
-        predicted_class = class_names[predicted_index]
-        confidence = float(predictions[predicted_index]) * 100
+            if predicted_index >= len(class_names):
+                st.error("The model classes do not match class_names.json.")
+                st.stop()
 
-        st.subheader("Prediction")
-        st.write(f"Predicted class: **{predicted_class}**")
-        st.write(f"Model confidence: **{confidence:.2f}%**")
+            predicted_class = class_names[predicted_index]
+            confidence = float(predictions[predicted_index]) * 100
 
-        st.warning(
-            "This is an educational prediction, not a medical diagnosis. "
-            "Consult a qualified dermatologist for medical advice."
-        )
+            st.subheader("Prediction")
+            st.write(f"Predicted class: **{predicted_class}**")
+            st.write(f"Model confidence: **{confidence:.2f}%**")
 
+            st.warning(
+                "This is an educational prediction, not a medical diagnosis. "
+                "Consult a qualified dermatologist for medical advice."
+            )
+
+        except Exception as e:
+            st.error("Prediction failed. Please check the model configuration.")
+            st.exception(e)
