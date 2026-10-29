@@ -16,10 +16,14 @@ st.write("Upload a skin image to see the model's predicted class.")
 @st.cache_resource
 def load_model():
     
-return tf.keras.models.load_model(
-    "skin_cancer_model.keras",
-    safe_mode=False
-)
+
+@st.cache_resource
+def load_model():
+    return tf.keras.models.load_model(
+        "skin_cancer_model.keras",
+        safe_mode=False
+    )
+
 
 
 @st.cache_data
