@@ -15,16 +15,12 @@ st.write("Upload a skin image to see the model's predicted class.")
 
 @st.cache_resource
 def load_model():
-    
-
-@st.cache_resource
-def load_model():
-    return tf.keras.models.load_model(
+    model = tf.keras.models.load_model(
         "skin_cancer_model.keras",
-        safe_mode=False
+        safe_mode=False,
+        compile=False
     )
-
-
+    return model
 
 @st.cache_data
 def load_classes():
@@ -63,6 +59,7 @@ if uploaded_file is not None:
         st.write(f"Model confidence: **{confidence:.2f}%**")
 
         st.warning(
-            "This is an educational AI prediction, not a medical diagnosis. "
-            "Please consult a qualified dermatologist for medical advice."
+            "This is an educational prediction, not a medical diagnosis. "
+            "Consult a qualified dermatologist for medical advice."
         )
+
