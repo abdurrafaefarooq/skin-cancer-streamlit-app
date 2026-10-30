@@ -1,10 +1,10 @@
 
-
-          
 import streamlit as st
 import tensorflow as tf
 import numpy as np
 import json
+import gdown
+import os
 from PIL import Image
 
 st.set_page_config(
@@ -15,11 +15,17 @@ st.set_page_config(
 st.title("Skin Cancer Detection")
 st.write("Upload a skin image to see the model's predicted class.")
 
+MODEL_PATH = "skin_cancer_model.keras"
+FILE_ID = "1wL2RDTaVE4HQ3KKVgtKtCumIBio27uw2"
+
 @st.cache_resource
 def load_model():
+    if not os.path.exists(MODEL_PATH):
+        url = f"https://drive.google.com/uc?id={FILE_ID}"
+        gdown.download(url, MODEL_PATH, quiet=False)
+
     return tf.keras.models.load_model(
-        "skin_cancer_model.keras",
-        safe_mode=False,
+        MODEL_PATH,
         compile=False
     )
 
@@ -48,6 +54,7 @@ if uploaded_file is not None:
     if st.button("Predict"):
         resized_image = image.resize((224, 224))
         image_array = np.array(resized_image, dtype=np.float32)
+        image_array = image_array / 255.0
         image_array = np.expand_dims(image_array, axis=0)
 
         try:
@@ -55,7 +62,7 @@ if uploaded_file is not None:
             predicted_index = int(np.argmax(predictions))
 
             if predicted_index >= len(class_names):
-                st.error("The model classes do not match class_names.json.")
+                st.error("Model classes do not match class names.")
                 st.stop()
 
             predicted_class = class_names[predicted_index]
@@ -66,10 +73,13 @@ if uploaded_file is not None:
             st.write(f"Model confidence: **{confidence:.2f}%**")
 
             st.warning(
-                "This is an educational prediction, not a medical diagnosis. "
-                "Consult a qualified dermatologist for medical advice."
+                "Educational prediction only. This is not a medical diagnosis. "
+                "Please consult a qualified dermatologist."
             )
 
         except Exception as e:
-            st.error("Prediction failed. Please check the model configuration.")
+            st.error("Prediction failed.")
             st.exception(e)
+
+
+          
